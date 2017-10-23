@@ -4,13 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Turtle_Tokenizer
+namespace TSL
 {
     class Program
     {
-        static Dictionary<string, Variable> variables = new Dictionary<string, Variable>();
-        static Dictionary<string, Token[]> functions = new Dictionary<string, Token[]>();
-
         static List<Token> tokens = new List<Token>();
 
         public static List<char> chars;
@@ -26,26 +23,16 @@ namespace Turtle_Tokenizer
                 , @"\s+", " ")                                                  // Removes excess whitespace
                 .Trim().ToCharArray().ToList();
 
-            List<Lexeme> lexemes = new List<Lexeme>();
+            Lexer lexer = new Lexer(chars);
+            List<Lexeme> lexemes = lexer.GetLexemes();
 
-            while (chars.Any())
-            {
-                lexemes.Add(Lexeme.GetNextLexeme());
-                Console.WriteLine(lexemes.Last().Text + string.Join("", Enumerable.Repeat(' ', 10 - lexemes.Last().Text.Length)) + lexemes.Last().Type);
-            }
+
+
+            Evaluator eval = new Evaluator(lexemes);
+            tokens = eval.GetTokens();
+
 
             Console.Read();
-        }
-    }
-
-    public class Evaluator
-    {
-        Lexeme[] Lexemes { get; set; }
-        Token[]  Tokens  { get; set; }
-
-        public Evaluator(Lexeme[] _lexemes)
-        {
-            Lexemes = _lexemes;
         }
     }
 
@@ -63,42 +50,6 @@ namespace Turtle_Tokenizer
         public T GetValue<T>()
         {
             return (T)Value;
-        }
-    }
-
-    public class Token
-    {
-        public readonly TokenType type;
-
-        public int LineNumber;
-        public int CharNumber;
-
-
-        public Token(TokenType _type)
-        {
-            type = _type;
-        }
-
-        public enum TokenType
-        {
-            VariableDeclaration,
-            FunctionDeclaration,
-            Assignment,
-            Addition,
-            Subtraction,
-            Multiplication,
-            Division,
-            Not,
-            And,
-            Or,
-            ArrayAccess,
-            Parameter,
-            Call,
-            String,
-            Int,
-            Double,
-            Bool
-
         }
     }
 }
