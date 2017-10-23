@@ -1,7 +1,8 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
-namespace Turtle_Tokenizer
+namespace TSL
 {
     public class Lexeme
     {
@@ -15,45 +16,6 @@ namespace Turtle_Tokenizer
             Text = _text;
             Type = _type;
         }
-
-        public static Lexeme GetNextLexeme()
-        {
-            StringBuilder text = new StringBuilder(32);
-            Lexer.CharType type;
-
-            if (Program.chars.Count == 1)
-                return new Lexeme(GetValue().ToString(), GetType(true));
-
-            do
-            {
-                type = GetType();
-                text.Append(GetValue(true));
-            }
-            while (Program.chars.Any() && type == GetType() && type != Lexer.CharType.Accessor);
-
-            Lexeme returnLexeme = new Lexeme(text.ToString(), type);
-            return type == Lexer.CharType.Separator ? GetNextLexeme() : returnLexeme;
-
-            char GetValue(bool removeChar = false)
-            {
-                char c = Program.chars.First();
-
-                if (removeChar)
-                    Program.chars.RemoveAt(0);
-
-                return c;
-            }
-
-            Lexer.CharType GetType(bool removeChar = false)
-            {
-                Lexer.CharType _type = Lexer.GetType(GetValue());
-
-                if (removeChar)
-                    Program.chars.RemoveAt(0);
-
-                return _type;
-            }
-        }
     }
 
     public class Lexer
@@ -61,6 +23,18 @@ namespace Turtle_Tokenizer
         public const string Operators = "=+-*/&|!";
         public const string Separators = ", ";
         public const string Accessors = "{}()[]";
+
+        public List<char> Chars;
+
+        public Lexer(List<char> chars)
+        {
+            Chars = chars;
+        }
+
+        public Lexer(string str)
+        {
+            Chars = str.ToCharArray().ToList();
+        }
 
         public enum CharType
         {
@@ -70,7 +44,7 @@ namespace Turtle_Tokenizer
             Accessor
         }
 
-        public static CharType GetType(char c)
+        public static CharType GetTypeOfChar(char c)
         {
             if (char.IsLetterOrDigit(c) || c == '.')
                 return CharType.Literal;
@@ -85,6 +59,55 @@ namespace Turtle_Tokenizer
                 return CharType.Separator;
 
             throw new InvalidCharException();
+        }
+
+        public List<Lexeme> GetLexemes()
+        {
+            List<Lexeme> lexemes = new List<Lexeme>();
+
+            while (Chars.Any())
+                lexemes.Add(GetNextLexeme());
+
+            return lexemes;
+        }
+
+        public Lexeme GetNextLexeme()
+        {
+            StringBuilder text = new StringBuilder(32);
+            CharType type;
+
+            if (Chars.Count == 1)
+                return new Lexeme(GetValue().ToString(), GetType(true));
+
+            do
+            {
+                type = GetType();
+                text.Append(GetValue(true));
+            }
+            while (Chars.Any() && type == GetType() && type != CharType.Accessor);
+
+            Lexeme returnLexeme = new Lexeme(text.ToString(), type);
+            return type == CharType.Separator ? GetNextLexeme() : returnLexeme;
+
+            char GetValue(bool removeChar = false)
+            {
+                char c = Chars.First();
+
+                if (removeChar)
+                    Chars.RemoveAt(0);
+
+                return c;
+            }
+
+            CharType GetType(bool removeChar = false)
+            {
+                CharType _type = GetTypeOfChar(GetValue());
+
+                if (removeChar)
+                    Chars.RemoveAt(0);
+
+                return _type;
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Turtle_Tokenizer
+namespace TSL
 {
     [Serializable]
     internal class InvalidCharException : Exception
