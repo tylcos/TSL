@@ -8,7 +8,7 @@ namespace TSL
 {
     class Program
     {
-        static List<Token> tokens = new List<Token>();
+        static List<IToken> tokens = new List<IToken>();
 
         public static List<char> chars;
 
@@ -33,23 +33,6 @@ namespace TSL
 
 
             Console.Read();
-        }
-    }
-
-    public class Variable
-    {
-        public readonly Type Type;
-        public readonly object Value;
-
-        public Variable(Type _type, object _value)
-        {
-            Type = _type;
-            Value = _value;
-        }
-
-        public T GetValue<T>()
-        {
-            return (T)Value;
         }
     }
 }

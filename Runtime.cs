@@ -8,7 +8,7 @@ namespace TSL
 {
     class Runtime
     {
-        static Dictionary<string, Variable> variables = new Dictionary<string, Variable>();
-        static Dictionary<string, Token[]> functions = new Dictionary<string, Token[]>();
+        static Dictionary<string, Literal> variables = new Dictionary<string, Literal>();
+        static Dictionary<string, IToken[]> functions = new Dictionary<string, IToken[]>();
     }
 }
