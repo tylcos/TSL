@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace TSL
@@ -18,9 +19,9 @@ namespace TSL
             Lexemes = _lexemes.ToArray();
         }
 
-        public List<Token> GetTokens()
+        public List<IToken> GetTokens()
         {
-            List<Token> tokens = new List<Token>();
+            List<IToken> tokens = new List<IToken>();
 
             while (Lexemes.Any())
                 tokens.Add(GetNextToken());
@@ -28,31 +29,23 @@ namespace TSL
             return tokens;
         }
 
-        public Token GetNextToken()
+        private IToken GetNextToken()
         {
-            index++;
-
-            Lexeme first = Lexemes[index];
-
-            return new Token(Token.TokenType.Addition);
+            throw new NotImplementedException();
         }
 
-        private Token TokenSelector ()
+        private IToken TokenSelector ()
         {
-            Token token;
+            IToken token;
+            string lexemeText = Lexemes[index].Text;
 
-            switch (Lexemes[index].Type)
+            switch (lexemeText)
             {
-                case Lexer.CharType.Literal:
-                    break;
-                case Lexer.CharType.Operator:
-                    break;
-                case Lexer.CharType.Separator:
-                    break;
-                case Lexer.CharType.Accessor:
+                case "var":
+                    token = new VariableDeclaration(lexemeText);
                     break;
             }
-
+            token = new VariableDeclaration(lexemeText);
             return token;
         }
     }
