@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace TSL
 {
@@ -19,34 +20,47 @@ namespace TSL
             Lexemes = _lexemes.ToArray();
         }
 
-        public List<IToken> GetTokens()
+        public List<string> GetTokens()
         {
-            List<IToken> tokens = new List<IToken>();
+            StringBuilder sb = new StringBuilder();
 
-            while (Lexemes.Any())
-                tokens.Add(GetNextToken());
+            if (Lexemes[index].Type != Lexer.CharType.Literal)
+                throw new Exception(); // REDO
 
-            return tokens;
-        }
-
-        private IToken GetNextToken()
-        {
-            throw new NotImplementedException();
-        }
-
-        private IToken TokenSelector ()
-        {
-            IToken token;
             string lexemeText = Lexemes[index].Text;
 
             switch (lexemeText)
             {
                 case "var":
-                    token = new VariableDeclaration(lexemeText);
+                    sb.Append("var ");
+                    sb.Append(Lexemes[index + 1].Text);
+
+                    if (Lexemes[index + 2].Text == "=")
+                    {
+                        sb.Append(" " + GetVariableType(Lexemes[index + 3].Text));
+                        sb.Append(" " + Lexemes[index + 3].Text);
+                        index += 4;
+                    }
+                    else
+                        index += 2;
+                    break;
+                case "function":
+                    break;
+                default:
                     break;
             }
-            token = new VariableDeclaration(lexemeText);
-            return token;
+
+            throw new NotImplementedException();
+        }
+
+        public string GetVariableType (string text)
+        {
+            if (float.TryParse(text, out float test1))
+                return "num";
+            if (bool.TryParse(text, out bool test2))
+                return "bool";
+
+            return "str";
         }
     }
 }

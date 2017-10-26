@@ -8,8 +8,6 @@ namespace TSL
 {
     class Program
     {
-        static List<IToken> tokens = new List<IToken>();
-
         public static List<char> chars;
 
         static readonly string TEXTPATH = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\a.txt";
@@ -29,8 +27,6 @@ namespace TSL
 
 
             Evaluator eval = new Evaluator(lexemes);
-            tokens = eval.GetTokens();
-
 
             Console.Read();
         }
