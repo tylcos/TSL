@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace TSL
@@ -8,49 +10,81 @@ namespace TSL
     public class Evaluator
     {
         public readonly string[] keywords = { "var", "function", "true", "false" };
-
-        public List<string> variables = new List<string>();
-        public List<string> functions = new List<string>();
+        public List<string> Variables = new List<string>();
+        public List<string> Functions = new List<string>();
 
         Lexeme[] Lexemes { get; set; }
-        int index = 0;
+        int Index = 0;
 
-        public Evaluator(List<Lexeme> _lexemes)
+        public Evaluator(List<Lexeme> lexemes)
         {
-            Lexemes = _lexemes.ToArray();
+            Lexemes = lexemes.ToArray();
         }
 
         public List<string> GetTokens()
         {
             StringBuilder sb = new StringBuilder();
 
-            if (Lexemes[index].Type != Lexer.CharType.Literal)
+            if (Lexemes[Index].Type != Lexer.CharType.Literal)
                 throw new Exception(); // REDO
 
-            string lexemeText = Lexemes[index].Text;
+            string lexemeText = Lexemes[Index].Text;
 
             switch (lexemeText)
             {
                 case "var":
                     sb.Append("var ");
-                    sb.Append(Lexemes[index + 1].Text);
+                    sb.Append(GetValue(1));
 
-                    if (Lexemes[index + 2].Text == "=")
+                    if (GetValue(2) == "=")
                     {
-                        sb.Append(" " + GetVariableType(Lexemes[index + 3].Text));
-                        sb.Append(" " + Lexemes[index + 3].Text);
-                        index += 4;
+                        sb.Append(" " + GetVariableType(GetValue(3)));
+                        sb.Append(" " + GetValue(3));
+                        Index += 4;
                     }
                     else
-                        index += 2;
+                        Index += 2;
+                    
                     break;
                 case "function":
+                    sb.Append("func ");
+                    sb.Append(GetValue(1));
+
+                    if (GetValue(2) == "(")
+                    {
+                        string paramName = GetValue(3);
+                        int offset = 0;
+
+                        while (paramName != ")")
+                        {
+                            if (GetValue(4) == "=")
+                            {
+                                sb.Append($" paramd {paramName} {GetValue(5)}");
+                                offset += 3;
+                            }
+                            else if (GetValue(4) == "," || GetValue(4) == ")")
+                            {
+                                sb.Append(" param " + paramName);
+                                offset += 2;
+                            }
+
+                            paramName = GetValue(3);
+                        }
+                        
+                        
+                    }
+                    
                     break;
                 default:
                     break;
             }
 
             throw new NotImplementedException();
+
+            string GetValue(int offset)
+            {
+                return Lexemes[Index + offset].Text;
+            }
         }
 
         public string GetVariableType (string text)
