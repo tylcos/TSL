@@ -9,7 +9,6 @@ namespace TSL
 {
     public class Evaluator
     {
-        public readonly string[] keywords = { "var", "function", "true", "false" };
         public List<string> Variables = new List<string>();
         public List<string> Functions = new List<string>();
 
