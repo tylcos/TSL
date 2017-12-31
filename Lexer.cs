@@ -61,22 +61,27 @@ namespace TSL
             throw new InvalidCharException();
         }
 
-        public List<Lexeme> GetLexemes()
+        public Lexeme[] GetLexemes()
         {
             List<Lexeme> lexemes = new List<Lexeme>();
 
             while (Chars.Any())
-                lexemes.Add(GetNextLexeme());
+            {
+                Lexeme newLexeme = GetNextLexeme();
 
-            return lexemes;
+                if (newLexeme != null)
+                    lexemes.Add(newLexeme);
+            }
+
+            return lexemes.ToArray();
         }
 
-        public Lexeme GetNextLexeme()
+        private Lexeme GetNextLexeme()
         {
             StringBuilder text = new StringBuilder(32);
             CharType type;
 
-            if (Chars.Count == 1)
+            if (Chars.Count == 1)   // Messes up 'sameAsNextChar'
                 return new Lexeme(GetValue().ToString(), GetType(true));
 
             do
@@ -86,8 +91,9 @@ namespace TSL
             }
             while (Chars.Any() && type == GetType() && type != CharType.Accessor);
 
-            Lexeme returnLexeme = new Lexeme(text.ToString(), type);
-            return type == CharType.Separator ? GetNextLexeme() : returnLexeme;
+            return type == CharType.Separator ? null : new Lexeme(text.ToString(), type);
+
+
 
             char GetValue(bool removeChar = false)
             {

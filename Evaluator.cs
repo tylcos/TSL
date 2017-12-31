@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace TSL
@@ -12,22 +9,30 @@ namespace TSL
         public List<string> Variables = new List<string>();
         public List<string> Functions = new List<string>();
 
-        Lexeme[] Lexemes { get; set; }
+        Lexeme[] Lexemes { get; }
         int Index = 0;
 
-        public Evaluator(List<Lexeme> lexemes)
+        public Evaluator(Lexeme[] lexemes)
         {
-            Lexemes = lexemes.ToArray();
+            Lexemes = lexemes;
         }
 
-        public List<string> GetTokens()
+        public string[] GetTokens()
+        {
+            List<string> tokens = new List<string>();
+
+            while (Index < Lexemes.Length)
+                tokens.Add(GetToken());
+
+            return tokens.ToArray();
+        }
+
+        private string GetToken()
         {
             StringBuilder sb = new StringBuilder();
 
-            if (Lexemes[Index].Type != Lexer.CharType.Literal)
-                throw new Exception(); // REDO
-
             string lexemeText = Lexemes[Index].Text;
+            int offset = 0;
 
             switch (lexemeText)
             {
@@ -43,7 +48,7 @@ namespace TSL
                     }
                     else
                         Index += 2;
-                    
+
                     break;
                 case "function":
                     sb.Append("func ");
@@ -52,7 +57,7 @@ namespace TSL
                     if (GetValue(2) == "(")
                     {
                         string paramName = GetValue(3);
-                        int offset = 0;
+                        
 
                         while (paramName != ")")
                         {
@@ -69,28 +74,26 @@ namespace TSL
 
                             paramName = GetValue(3);
                         }
-                        
-                        
                     }
-                    
-                    break;
-                default:
+
                     break;
             }
+
+            Index += offset;
 
             throw new NotImplementedException();
+        }
 
-            string GetValue(int offset)
-            {
-                return Lexemes[Index + offset].Text;
-            }
+        private string GetValue(int indexOffset)
+        {
+            return Lexemes[Index + indexOffset].Text;
         }
 
         public string GetVariableType (string text)
         {
-            if (float.TryParse(text, out float test1))
+            if (float.TryParse(text, out _))
                 return "num";
-            if (bool.TryParse(text, out bool test2))
+            if (bool.TryParse(text, out _))
                 return "bool";
 
             return "str";

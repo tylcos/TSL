@@ -6,11 +6,13 @@ using System.Text.RegularExpressions;
 
 namespace TSL
 {
-    class Program
+    internal class Program
     {
         public static List<char> chars;
 
-        static readonly string TEXTPATH = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\a.txt";
+        static readonly string TEXTPATH   = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\a.txt";
+        static readonly string LEXEMEPATH = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\b.txt";
+        static readonly string TOKENPATH  = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\c.txt";
 
         public static void Main()
         {
@@ -21,14 +23,21 @@ namespace TSL
                 , @"\s+", " ")                                                  // Removes excess whitespace
                 .Trim().ToCharArray().ToList();
 
-            Lexer lexer = new Lexer(chars);
-            List<Lexeme> lexemes = lexer.GetLexemes();
+            Lexeme[] lexemes = new Lexer(chars).GetLexemes();
+            string[] eval = new Evaluator(lexemes).GetTokens();
 
+            File.WriteAllLines(LEXEMEPATH, PrintList(lexemes));
+            File.WriteAllLines(TOKENPATH, PrintList(lexemes));
+        }
 
+        static string[] PrintList (Lexeme[] list)
+        {
+            string[] printlist = new string[list.Length];
 
-            Evaluator eval = new Evaluator(lexemes);
+            for (int i = 0; i < list.Length; i++)
+                printlist[i] = list[i].Type + new String(' ', 15 - list[i].Type.ToString().Length) + list[i].Text;
 
-            Console.Read();
+            return printlist;
         }
     }
 }
