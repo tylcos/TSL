@@ -12,22 +12,23 @@ namespace TSL
 
         static readonly string TEXTPATH   = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\a.txt";
         static readonly string LEXEMEPATH = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\b.txt";
-        static readonly string TOKENPATH  = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\c.txt";
+
+        static readonly string NEWLINE    = '\u0017'.ToString();
 
         public static void Main()
         {
             string lines = File.ReadAllText(TEXTPATH);
-            chars = Regex.Replace(Regex.Replace(Regex.Replace(lines
+            chars = Regex.Replace(Regex.Replace(Regex.Replace(Regex.Replace(lines
                 , @"\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*\/+|\t|\/\/.*", "") // Removes comments, multiline comments, and tabs
-                , @"\n|\r", " ")                                                // Replaces new lines
+                , @"\n|\r", NEWLINE)                                            // Replaces new lines with unicode linefeed
+                , @"\u0017+", NEWLINE)                                          // Removes excess newlines
                 , @"\s+", " ")                                                  // Removes excess whitespace
                 .Trim().ToCharArray().ToList();
 
             Lexeme[] lexemes = new Lexer(chars).GetLexemes();
-            string[] eval = new Evaluator(lexemes).GetTokens();
+            Token[]  tokens  = new Evaluator(lexemes).GetTokens();
 
             File.WriteAllLines(LEXEMEPATH, PrintList(lexemes));
-            File.WriteAllLines(TOKENPATH, PrintList(lexemes));
         }
 
         static string[] PrintList (Lexeme[] list)

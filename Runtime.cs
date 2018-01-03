@@ -46,4 +46,11 @@ namespace TSL
     {
 
     }
+
+    public enum VarType
+    {
+        String,
+        Number,
+        Bool
+    }
 }

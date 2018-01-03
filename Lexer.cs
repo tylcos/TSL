@@ -26,6 +26,10 @@ namespace TSL
 
         public List<char> Chars;
 
+        public List<Lexeme> Lexemes { get; } = new List<Lexeme>();
+
+
+
         public Lexer(List<char> chars)
         {
             Chars = chars;
@@ -36,44 +40,19 @@ namespace TSL
             Chars = str.ToCharArray().ToList();
         }
 
-        public enum CharType
-        {
-            Operator,
-            Literal,
-            Separator,
-            Accessor
-        }
 
-        public static CharType GetTypeOfChar(char c)
-        {
-            if (char.IsLetterOrDigit(c) || c == '.')
-                return CharType.Literal;
-
-            if (Operators.Contains(c))
-                return CharType.Operator;
-
-            if (Accessors.Contains(c))
-                return CharType.Accessor;
-
-            if (Separators.Contains(c))
-                return CharType.Separator;
-
-            throw new InvalidCharException();
-        }
 
         public Lexeme[] GetLexemes()
         {
-            List<Lexeme> lexemes = new List<Lexeme>();
-
             while (Chars.Any())
             {
                 Lexeme newLexeme = GetNextLexeme();
 
                 if (newLexeme != null)
-                    lexemes.Add(newLexeme);
+                    Lexemes.Add(newLexeme);
             }
 
-            return lexemes.ToArray();
+            return Lexemes.ToArray();
         }
 
         private Lexeme GetNextLexeme()
@@ -81,15 +60,12 @@ namespace TSL
             StringBuilder text = new StringBuilder(32);
             CharType type;
 
-            if (Chars.Count == 1)   // Messes up 'sameAsNextChar'
-                return new Lexeme(GetValue().ToString(), GetType(true));
-
             do
             {
                 type = GetType();
                 text.Append(GetValue(true));
             }
-            while (Chars.Any() && type == GetType() && type != CharType.Accessor);
+            while (Chars.Count > 1 && type == GetType() && type != CharType.Accessor);
 
             return type == CharType.Separator ? null : new Lexeme(text.ToString(), type);
 
@@ -114,6 +90,35 @@ namespace TSL
 
                 return _type;
             }
+        }
+
+        public enum CharType
+        {
+            Accessor,
+            Literal,
+            NewLine,
+            Operator,
+            Separator
+        }
+
+        public static CharType GetTypeOfChar(char c)
+        {
+            if (Accessors.Contains(c))
+                return CharType.Accessor;
+
+            if (char.IsLetterOrDigit(c) || c == '.')
+                return CharType.Literal;
+
+            if (c == '\u0017')
+                return CharType.NewLine;
+
+            if (Operators.Contains(c))
+                return CharType.Operator;
+
+            if (Separators.Contains(c))
+                return CharType.Separator;
+
+            throw new InvalidCharException();
         }
     }
 }
