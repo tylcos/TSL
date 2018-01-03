@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace TSL
 {
@@ -9,55 +9,74 @@ namespace TSL
         public List<string> Variables = new List<string>();
         public List<string> Functions = new List<string>();
 
-        Lexeme[] Lexemes { get; }
-        int Index = 0;
+        public List<Lexeme> Lexemes = new List<Lexeme>();
+
+        public List<Token> Tokens { get; } = new List<Token>();
+
+        private int count = 0;
+
+
 
         public Evaluator(Lexeme[] lexemes)
         {
-            Lexemes = lexemes;
+            Lexemes = lexemes.ToList();
         }
 
-        public string[] GetTokens()
+
+
+        public Token[] GetTokens()
         {
-            List<string> tokens = new List<string>();
+            while (count < Lexemes.Count)
+                GetToken();
 
-            while (Index < Lexemes.Length)
-                tokens.Add(GetToken());
-
-            return tokens.ToArray();
+            return Tokens.ToArray();
         }
 
-        private string GetToken()
+        private void GetToken()
         {
-            StringBuilder sb = new StringBuilder();
-
-            string lexemeText = Lexemes[Index].Text;
-            int offset = 0;
+            string lexemeText = Lexemes[0].Text;
 
             switch (lexemeText)
             {
                 case "var":
-                    sb.Append("var ");
-                    sb.Append(GetValue(1));
+                    SyntaxCheck(!CheckLexemes('l', 'l'), "'var' keyword expects a literal for the name");
 
-                    if (GetValue(2) == "=")
+                    string variableName = GetValue(1);
+                    SyntaxCheck(Variables.Contains(variableName), $"'{variableName}' is already declared");
+                    Variables.Add(variableName);
+
+                    Tokens.Add(new VariableDeclaration(variableName));
+                    Remove(2);
+                    
+
+                    /*
+                    if (CheckLexemes(2, 'o', 'l'))
                     {
-                        sb.Append(" " + GetVariableType(GetValue(3)));
-                        sb.Append(" " + GetValue(3));
-                        Index += 4;
-                    }
-                    else
-                        Index += 2;
+                        SyntaxCheck(GetValue(2) == "=", "variable decleration and assignment must have a '=' operator");
+
+                        string value = GetValue(3);
+
+                        if (Variables.Contains(value))
+                            sb.Append(" val " + value);
+                        else
+                            sb.Append(" " + GetVariableType(value) + value);
+
+                        index += 4;
+                    }*/
+                        
+
+
 
                     break;
+                case "=":
+                    //if (Tokens.Last() ==
+                    break;
                 case "function":
-                    sb.Append("func ");
-                    sb.Append(GetValue(1));
 
+                    /*
                     if (GetValue(2) == "(")
                     {
                         string paramName = GetValue(3);
-                        
 
                         while (paramName != ")")
                         {
@@ -74,22 +93,27 @@ namespace TSL
 
                             paramName = GetValue(3);
                         }
-                    }
+                    }*/
 
+                    break;
+                case "":
                     break;
             }
 
-            Index += offset;
-
-            throw new NotImplementedException();
+            count++;
         }
 
-        private string GetValue(int indexOffset)
+        private string GetValue(int offset)
         {
-            return Lexemes[Index + indexOffset].Text;
+            return Lexemes[offset].Text;
         }
 
-        public string GetVariableType (string text)
+        private void Remove(int amountToRemove)
+        {
+            Lexemes.RemoveRange(0, amountToRemove);
+        }
+
+        public string GetVariableType(string text)
         {
             if (float.TryParse(text, out _))
                 return "num";
@@ -97,6 +121,49 @@ namespace TSL
                 return "bool";
 
             return "str";
+        }
+
+        public void SyntaxCheck(bool check, string msg)
+        {
+            if (check)
+                throw new InvalidSyntaxException(msg);
+        }
+
+        public bool CheckLexemes(params char[] lexemeTypes)
+        {
+            return CheckLexemes(0, lexemeTypes);
+        }
+
+        public bool CheckLexemes(int offset, params char[] lexemeTypes)
+        {
+            Lexer.CharType[] convertedLexemeTypes = new Lexer.CharType[lexemeTypes.Length];
+
+            for (int i = 0; i < lexemeTypes.Length; i++)
+            {
+                switch (lexemeTypes[i])
+                {
+                    case 'a': convertedLexemeTypes[i] = Lexer.CharType.Accessor;  break;
+                    case 'l': convertedLexemeTypes[i] = Lexer.CharType.Literal;   break;
+                    case 'n': convertedLexemeTypes[i] = Lexer.CharType.NewLine;   break;
+                    case 'o': convertedLexemeTypes[i] = Lexer.CharType.Operator;  break;
+                    case 's': convertedLexemeTypes[i] = Lexer.CharType.Separator; break;
+                }
+            }
+
+            return CheckLexemes(offset, convertedLexemeTypes);
+        }
+
+        public bool CheckLexemes(int offset, params Lexer.CharType[] lexemeTypes)
+        {
+            bool lexemesMatch = true;
+
+            for (int i = 0; i < lexemeTypes.Length && lexemesMatch; i++)
+            {
+                if (Lexemes[offset + i].Type != lexemeTypes[i])
+                    lexemesMatch = false;
+            }
+
+            return lexemesMatch;
         }
     }
 }
