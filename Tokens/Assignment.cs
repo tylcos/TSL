@@ -1,12 +1,14 @@
-﻿namespace TSL.Tokens
+﻿namespace TSL
 {
     class Assignment : Token
     {
-        string Name;
+        string VariableName;
+        Expression Value;
 
-        public Assignment()
+        public Assignment(string variableName, Expression value)
         {
-
+            VariableName = variableName;
+            Value = value;
         }
     }
 }

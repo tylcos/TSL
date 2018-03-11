@@ -8,8 +8,14 @@ namespace TSL
 {
     class Runtime
     {
-        static Dictionary<string, Variable> variables = new Dictionary<string, Variable>();
-        static Dictionary<string, string[]> functions = new Dictionary<string, string[]>();
+        public readonly Dictionary<string, double> GlobalVariables = new Dictionary<string, double>();
+        public List<string> GlobalFunctions = new List<string>();
+
+
+
+        public void Run()
+        {
+        }
     }
 
     public class Variable
