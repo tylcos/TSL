@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace TSL
 {
-    public class Evaluator
+    class Evaluator
     {
-        public List<string> Variables = new List<string>();
-        public List<string> Functions = new List<string>();
+        public List<string> UserVariables = new List<string>();
+        public List<string> UserFunctions = new List<string>();
 
         public List<Lexeme> Lexemes = new List<Lexeme>();
 
@@ -39,76 +39,53 @@ namespace TSL
             switch (lexemeText)
             {
                 case "var":
-                    SyntaxCheck(!CheckLexemes('l', 'l'), "'var' keyword expects a literal for the name");
+                    SyntaxCheck(!CheckLexemes('l', 'l'), "The 'var' keyword expects a literal for the name");
 
                     string variableName = GetValue(1);
-                    SyntaxCheck(Variables.Contains(variableName), $"'{variableName}' is already declared");
-                    Variables.Add(variableName);
+                    SyntaxCheck(UserVariables.Contains(variableName), $"'{variableName}' is already declared");
+                    UserVariables.Add(variableName);
 
                     Tokens.Add(new VariableDeclaration(variableName));
                     Remove(2);
-                    
 
-                    /*
-                    if (CheckLexemes(2, 'o', 'l'))
+                    if (GetValue() == "=")
                     {
-                        SyntaxCheck(GetValue(2) == "=", "variable decleration and assignment must have a '=' operator");
+                        SyntaxCheck(GetType(1) != Lexer.CharType.NewLine, "No expression after assignment");
 
-                        string value = GetValue(3);
+                        int expressionLength = 0;
+                        while (GetType(1 + expressionLength) != Lexer.CharType.NewLine)
+                            expressionLength++;
 
-                        if (Variables.Contains(value))
-                            sb.Append(" val " + value);
-                        else
-                            sb.Append(" " + GetVariableType(value) + value);
+                        Expression expression = new Expression(Lexemes.GetRange(1, expressionLength).ToArray());
+                        Tokens.Add(new Assignment(variableName, expression));
 
-                        index += 4;
-                    }*/
-                        
-
-
-
-                    break;
-                case "=":
-                    //if (Tokens.Last() ==
+                        Remove(1 + expressionLength);
+                    }
                     break;
                 case "function":
+                    SyntaxCheck(!CheckLexemes('l', 'l'), "The 'function' keyword expects a literal for the name");
 
-                    /*
-                    if (GetValue(2) == "(")
-                    {
-                        string paramName = GetValue(3);
-
-                        while (paramName != ")")
-                        {
-                            if (GetValue(4) == "=")
-                            {
-                                sb.Append($" paramd {paramName} {GetValue(5)}");
-                                offset += 3;
-                            }
-                            else if (GetValue(4) == "," || GetValue(4) == ")")
-                            {
-                                sb.Append(" param " + paramName);
-                                offset += 2;
-                            }
-
-                            paramName = GetValue(3);
-                        }
-                    }*/
 
                     break;
-                case "":
+                default:
+
                     break;
             }
 
             count++;
         }
 
-        private string GetValue(int offset)
+        private string GetValue(int offset = 0)
         {
             return Lexemes[offset].Text;
         }
 
-        private void Remove(int amountToRemove)
+        private Lexer.CharType GetType(int offset = 0)
+        {
+            return Lexemes[offset].Type;
+        }
+
+        private void Remove(int amountToRemove = 1)
         {
             Lexemes.RemoveRange(0, amountToRemove);
         }
@@ -128,6 +105,8 @@ namespace TSL
             if (check)
                 throw new InvalidSyntaxException(msg);
         }
+
+
 
         public bool CheckLexemes(params char[] lexemeTypes)
         {
