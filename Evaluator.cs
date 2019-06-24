@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace TSL
 {
@@ -42,7 +43,7 @@ namespace TSL
                     SyntaxCheck(!CheckLexemes('l', 'l'), "The 'var' keyword expects a literal for the name");
 
                     string variableName = GetValue(1);
-                    SyntaxCheck(UserVariables.Contains(variableName), $"'{variableName}' is already declared");
+                    SyntaxCheck(UserVariables.Contains(variableName), $"The variable '{variableName}' is declared twice");
                     UserVariables.Add(variableName);
 
                     Tokens.Add(new VariableDeclaration(variableName));
@@ -57,14 +58,35 @@ namespace TSL
                             expressionLength++;
 
                         Expression expression = new Expression(Lexemes.GetRange(1, expressionLength).ToArray());
-                        Tokens.Add(new Assignment(variableName, expression));
+                        
 
                         Remove(1 + expressionLength);
                     }
+
                     break;
                 case "function":
                     SyntaxCheck(!CheckLexemes('l', 'l'), "The 'function' keyword expects a literal for the name");
 
+                    string functionName = GetValue(1);
+                    SyntaxCheck(UserFunctions.Contains(functionName), $"The function '{functionName}' is defined twice");
+                    UserFunctions.Add(functionName);
+
+                    StringBuilder sb = new StringBuilder();
+                    int i = 1;
+                    while (GetValue(++i) != ")")
+                        sb.Append(GetValue(i));
+
+                    List<Parameter> parameters = new List<Parameter>();
+                    foreach (string parameter in sb.ToString().Split(','))
+                    {
+                        string[] parts = parameter.Split('=');
+                        string defaultValue = parts.Length == 2 ? parts[1] : null;
+
+                        parameters.Add(new Parameter(parts[0], new Value(defaultValue)));
+                    }
+
+                    Tokens.Add(new FunctionDeclaration(functionName, parameters.ToArray()));
+                    Remove(1 + i);
 
                     break;
                 default:
@@ -136,7 +158,7 @@ namespace TSL
         {
             bool lexemesMatch = true;
 
-            for (int i = 0; i < lexemeTypes.Length && lexemesMatch; i++)
+            for (int i = 0; lexemesMatch && i < lexemeTypes.Length; i++)
             {
                 if (Lexemes[offset + i].Type != lexemeTypes[i])
                     lexemesMatch = false;

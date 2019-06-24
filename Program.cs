@@ -18,7 +18,7 @@ namespace TSL
             string lines = File.ReadAllText(TEXTPATH);
             
             Lexeme[] lexemes = new Lexer(lines).GetLexemes();
-            //Token[]  tokens  = new Evaluator(lexemes).GetTokens();
+            Token[]  tokens  = new Evaluator(lexemes).GetTokens();
 
             File.WriteAllLines(LEXEMEPATH, PrintList(lexemes));
         }
@@ -30,7 +30,7 @@ namespace TSL
             string[] printlist = new string[list.Length];
 
             for (int i = 0; i < list.Length; i++)
-                printlist[i] = list[i].Type + new String(' ', 15 - list[i].Type.ToString().Length) + list[i].Text;
+                printlist[i] = list[i].Type + new string(' ', 15 - list[i].Type.ToString().Length) + list[i].Text;
 
             return printlist;
         }
