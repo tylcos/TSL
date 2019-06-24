@@ -7,7 +7,7 @@ namespace TSL
 {
     public class Lexer
     {
-        public const string Operators = "=+-*/&|!^%";
+        public const string Operators = "=+-*/&|!^%<>";
         public const string Separators = ", ";
         public const string Accessors = "{}()[]";
 
@@ -48,13 +48,18 @@ namespace TSL
         {
             StringBuilder text = new StringBuilder(32);
             CharType type;
+            bool inQuotes = false;
 
             do
             {
                 type = GetType();
-                text.Append(GetValue(true));
+                char character = GetValue(true);
+                text.Append(character);
+
+                if (character == '"')
+                    inQuotes = !inQuotes;
             }
-            while (Chars.Count > 1 && type == GetType() && type != CharType.Accessor);
+            while (Chars.Count > 1 && (inQuotes || (type == GetType() && type != CharType.Accessor)));
 
             return type == CharType.Separator ? null : new Lexeme(text.ToString(), type);
 
@@ -95,7 +100,7 @@ namespace TSL
             if (Accessors.Contains(c))
                 return CharType.Accessor;
 
-            if (char.IsLetterOrDigit(c) || c == '.')
+            if (char.IsLetterOrDigit(c) || ".\"".Contains(c))
                 return CharType.Literal;
 
             if (c == '\u0017')

@@ -1,6 +1,6 @@
 ﻿namespace TSL
 {
-    public class Token
+    public interface Token
     {
 
     }
