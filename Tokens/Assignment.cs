@@ -1,9 +1,11 @@
 ﻿namespace TSL
 {
-    class Assignment : Token
+    class Assignment : IToken
     {
-        string VariableName;
-        Expression Value;
+        readonly string VariableName;
+        readonly Expression Value;
+
+
 
         public Assignment(string variableName, Expression value)
         {

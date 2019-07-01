@@ -1,9 +1,11 @@
 ﻿namespace TSL
 {
-    class Parameter : Token
+    class Parameter : IToken
     {
-        string ParameterName;
-        Value DefaultValue;
+        readonly string ParameterName;
+        readonly Value DefaultValue;
+
+
 
         public Parameter(string parameterName, Value defaultValue)
         {

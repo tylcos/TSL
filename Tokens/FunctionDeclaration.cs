@@ -1,9 +1,11 @@
 ﻿namespace TSL
 {
-    class FunctionDeclaration : Token
+    class FunctionDeclaration : IToken
     {
-        string FunctionName;
-        Parameter[] Parameters;
+        readonly string FunctionName;
+        readonly Parameter[] Parameters;
+
+
 
         public FunctionDeclaration(string functionName, params Parameter[] parameters)
         {

@@ -2,21 +2,29 @@
 using System.Linq;
 using System.Text;
 
+
+
 namespace TSL
 {
-    class Expression : Token
+    class Expression : IToken
     {
-        List<Symbol> inputSymbols = new List<Symbol>();
+        readonly List<Symbol> inputSymbols = new List<Symbol>();
 
-        public Expression(Lexeme[] lexemes)
+
+
+        public Expression(Lexeme[] lexemes, int pos)
         {
             inputSymbols = ParseLexemes(lexemes);
         }
+
+
 
         public double Evaulate() // Implement in runtime
         {
             return 0;
         }
+
+
 
         public List<Symbol> ParseLexemes (Lexeme[] lexemes)
         {

@@ -3,31 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+
+
 namespace TSL
 {
     class Evaluator
     {
+        public Lexeme[] Lexemes;
+        public List<IToken> Tokens { get; } = new List<IToken>();
+        public int pos;
+
+
+
         public List<string> UserVariables = new List<string>();
         public List<string> UserFunctions = new List<string>();
 
-        public List<Lexeme> Lexemes = new List<Lexeme>();
 
-        public List<Token> Tokens { get; } = new List<Token>();
 
-        private int count = 0;
+        private readonly char[] SpecialLiterals = ".\"".ToCharArray();
 
 
 
         public Evaluator(Lexeme[] lexemes)
         {
-            Lexemes = lexemes.ToList();
+            Lexemes = lexemes;
         }
 
 
 
-        public Token[] GetTokens()
+        public IToken[] GetTokens()
         {
-            while (count < Lexemes.Count)
+            while (pos < Lexemes.Length)
                 GetToken();
 
             return Tokens.ToArray();
@@ -35,44 +41,55 @@ namespace TSL
 
         private void GetToken()
         {
-            string lexemeText = Lexemes[0].Text;
+            string lexemeText = GetValue();
 
             switch (lexemeText)
             {
                 case "var":
-                    SyntaxCheck(!CheckLexemes('l', 'l'), "The 'var' keyword expects a literal for the name");
+                    SyntaxAssert(LexemesMatch(1, 'l'), "The 'var' keyword expects a literal for the name");
 
                     string variableName = GetValue(1);
-                    SyntaxCheck(UserVariables.Contains(variableName), $"The variable '{variableName}' is declared twice");
+                    SyntaxAssert(variableName.IndexOfAny(SpecialLiterals) == -1, $"Invaild variable name for '{variableName}'");
+                    SyntaxAssert(!UserVariables.Contains(variableName), $"The variable '{variableName}' is declared twice");
                     UserVariables.Add(variableName);
 
                     Tokens.Add(new VariableDeclaration(variableName));
-                    Remove(2);
+                    MovePos(2);
+
+
 
                     if (GetValue() == "=")
                     {
-                        SyntaxCheck(GetType(1) != Lexer.CharType.NewLine, "No expression after assignment");
+                        SyntaxAssert(GetType(1) != Lexer.CharType.NewLine, "No expression after assignment");
+                        MovePos(1);
 
                         int expressionLength = 0;
-                        while (GetType(1 + expressionLength) != Lexer.CharType.NewLine)
+                        while (GetType(expressionLength) != Lexer.CharType.NewLine)
                             expressionLength++;
 
-                        Expression expression = new Expression(Lexemes.GetRange(1, expressionLength).ToArray());
-                        
+                        Tokens.Add(new Assignment(variableName, new Expression(Lexemes, expressionLength)));
 
-                        Remove(1 + expressionLength);
+                        MovePos(expressionLength);
                     }
 
                     break;
-                case "function":
-                    SyntaxCheck(!CheckLexemes('l', 'l'), "The 'function' keyword expects a literal for the name");
+
+                case "def":
+                    SyntaxAssert(LexemesMatch(1, 'l'), "The 'def' keyword expects a literal for the name");
 
                     string functionName = GetValue(1);
-                    SyntaxCheck(UserFunctions.Contains(functionName), $"The function '{functionName}' is defined twice");
+                    SyntaxAssert(functionName.IndexOfAny(SpecialLiterals) == -1, $"Invaild variable name for '{functionName}'");
+                    SyntaxAssert(!UserFunctions.Contains(functionName), $"The function '{functionName}' is defined twice");
                     UserFunctions.Add(functionName);
+                    MovePos(2);
+
+
+
+                    SyntaxAssert(GetValue() == "(", "The 'def' keyword expects parenthesis around the parameters");
 
                     StringBuilder sb = new StringBuilder();
-                    int i = 1;
+
+                    int i = 0; // Number of lexemes after open parenthesis
                     while (GetValue(++i) != ")")
                         sb.Append(GetValue(i));
 
@@ -86,56 +103,55 @@ namespace TSL
                     }
 
                     Tokens.Add(new FunctionDeclaration(functionName, parameters.ToArray()));
-                    Remove(1 + i);
+                    MovePos(1 + i);
 
                     break;
+
                 default:
+                    MovePos(1);
 
                     break;
             }
-
-            count++;
         }
+
+
 
         private string GetValue(int offset = 0)
         {
-            return Lexemes[offset].Text;
+            return Lexemes[pos + offset].Text;
         }
 
         private Lexer.CharType GetType(int offset = 0)
         {
-            return Lexemes[offset].Type;
+            return Lexemes[pos + offset].Type;
         }
 
-        private void Remove(int amountToRemove = 1)
+        private void MovePos(int amountToRemove = 1)
         {
-            Lexemes.RemoveRange(0, amountToRemove);
+            pos += amountToRemove;
         }
 
-        public string GetVariableType(string text)
+        public int GetVariableType(string text)
         {
-            if (float.TryParse(text, out _))
-                return "num";
+            if (text.All(char.IsDigit))
+                return 0;
+            if (text.Contains(".") && double.TryParse(text, out _))
+                return 1;
             if (bool.TryParse(text, out _))
-                return "bool";
+                return 2;
 
-            return "str";
+            return 3;
         }
 
-        public void SyntaxCheck(bool check, string msg)
+        public void SyntaxAssert(bool check, string msgIfFalse)
         {
-            if (check)
-                throw new InvalidSyntaxException(msg);
+            if (!check)
+                throw new InvalidSyntaxException(msgIfFalse);
         }
+        
 
 
-
-        public bool CheckLexemes(params char[] lexemeTypes)
-        {
-            return CheckLexemes(0, lexemeTypes);
-        }
-
-        public bool CheckLexemes(int offset, params char[] lexemeTypes)
+        public bool LexemesMatch(int offset = 0, params char[] lexemeTypes)
         {
             Lexer.CharType[] convertedLexemeTypes = new Lexer.CharType[lexemeTypes.Length];
 
@@ -151,20 +167,16 @@ namespace TSL
                 }
             }
 
-            return CheckLexemes(offset, convertedLexemeTypes);
+            return LexemesMatch(offset, convertedLexemeTypes);
         }
 
-        public bool CheckLexemes(int offset, params Lexer.CharType[] lexemeTypes)
+        public bool LexemesMatch(int offset, params Lexer.CharType[] lexemeTypes)
         {
-            bool lexemesMatch = true;
+            for (int i = 0; i < lexemeTypes.Length; i++)
+                if (Lexemes[pos + offset + i].Type != lexemeTypes[i])
+                    return false;
 
-            for (int i = 0; lexemesMatch && i < lexemeTypes.Length; i++)
-            {
-                if (Lexemes[offset + i].Type != lexemeTypes[i])
-                    lexemesMatch = false;
-            }
-
-            return lexemesMatch;
+            return true;
         }
     }
 }
