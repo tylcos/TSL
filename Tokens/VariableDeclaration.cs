@@ -1,8 +1,10 @@
 ﻿namespace TSL
 {
-    class VariableDeclaration : Token
+    class VariableDeclaration : IToken
     {
-        string Name;
+        readonly string Name;
+
+
 
         public VariableDeclaration(string name)
         {

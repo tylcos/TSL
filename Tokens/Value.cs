@@ -4,6 +4,8 @@
     {
         public dynamic value;
 
+
+
         public Value(string _value)
         {
             if      (bool.TryParse(_value, out bool returnValueB))

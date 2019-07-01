@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
+
+
 namespace TSL
 {
     public class Lexer
@@ -13,7 +15,8 @@ namespace TSL
 
         static readonly string NEWLINE = '\u0017'.ToString();
 
-        public List<char> Chars;
+        public char[] Chars;
+        public int pos;
 
         public List<Lexeme> Lexemes { get; } = new List<Lexeme>();
 
@@ -26,14 +29,14 @@ namespace TSL
                 , @"\n|\r", NEWLINE)                                            // Replaces new lines with unicode linefeed
                 , @"\u0017+", NEWLINE)                                          // Removes excess newlines
                 , @"\s+", " ")                                                  // Removes excess whitespace
-                .Trim().ToCharArray().ToList();
+                .Trim().ToCharArray();
         }
 
 
 
         public Lexeme[] GetLexemes()
         {
-            while (Chars.Any())
+            while (CharsRemaining())
             {
                 Lexeme newLexeme = GetNextLexeme();
 
@@ -52,14 +55,15 @@ namespace TSL
 
             do
             {
-                type = GetType();
-                char character = GetValue(true);
-                text.Append(character);
+                char c = GetValue(true);
+                text.Append(c);
 
-                if (character == '"')
+                type = GetTypeOfChar(c);
+
+                if (c == '"')
                     inQuotes = !inQuotes;
             }
-            while (Chars.Count > 1 && (inQuotes || (type == GetType() && type != CharType.Accessor)));
+            while (CharsRemaining() && (inQuotes || (type == GetType() && type != CharType.Accessor)));
 
             return type == CharType.Separator ? null : new Lexeme(text.ToString(), type);
 
@@ -67,22 +71,17 @@ namespace TSL
 
             char GetValue(bool removeChar = false)
             {
-                char c = Chars.First();
+                char c = Chars[pos];
 
                 if (removeChar)
-                    Chars.RemoveAt(0);
+                    pos++;
 
                 return c;
             }
 
             CharType GetType(bool removeChar = false)
             {
-                CharType _type = GetTypeOfChar(GetValue());
-
-                if (removeChar)
-                    Chars.RemoveAt(0);
-
-                return _type;
+                return GetTypeOfChar(GetValue(removeChar));
             }
         }
 
@@ -113,6 +112,13 @@ namespace TSL
                 return CharType.Separator;
 
             throw new InvalidCharException();
+        }
+
+
+
+        bool CharsRemaining()
+        {
+            return pos < Chars.Length - 1;
         }
     }
 }

@@ -1,9 +1,5 @@
-# STL
-Tokenizer and runtime for the Turtle Scripting Language.
+﻿// Turtle Scripting Language example program
 
-# Sample Program
-```
-// Turtle Scripting Language example program
 var dis = 50
 var turn = dis + 30
 
@@ -13,7 +9,7 @@ var turn = dis + 30
 Draw(true)
 moveLeft(50.5 + dis)
 
-function moveLeft (distance = 0, msg = "test") // For moving left
+def moveLeft (distance = 0, msg = "test") // For moving left
 {
 	distance += 5
 	
@@ -29,4 +25,3 @@ function moveLeft (distance = 0, msg = "test") // For moving left
 	
 	Print(msg)
 }
-```
