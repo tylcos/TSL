@@ -1,16 +1,18 @@
 # STL
-Tokenizer and runtime for the Turtle Scripting Language.
+Tokenizer and runtime for the Test Scripting Language.
 
 # Sample Program
 ```
-// Turtle Scripting Language example program
+// Test Scripting Language example program
+// Needs to be updated
+
 var dis = 50
 var turn = dis + 30
 
 /*
 	Main code
 */
-Draw(true)
+Draw(true) 
 moveLeft(50.5 + dis)
 
 function moveLeft (distance = 0, msg = "test") // For moving left

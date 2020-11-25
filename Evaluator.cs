@@ -61,13 +61,12 @@ namespace TSL
                     if (GetValue() == "=")
                     {
                         SyntaxAssert(GetType(1) != Lexer.CharType.NewLine, "No expression after assignment");
-                        MovePos(1);
 
-                        int expressionLength = 0;
+                        int expressionLength = 1; // Includes assignment operator
                         while (GetType(expressionLength) != Lexer.CharType.NewLine)
                             expressionLength++;
 
-                        Tokens.Add(new Assignment(variableName, new Expression(Lexemes, expressionLength)));
+                        Tokens.Add(new Assignment(variableName, new Expression(Lexemes, expressionLength))); // Wrong
 
                         MovePos(expressionLength);
                     }

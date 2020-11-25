@@ -5,10 +5,10 @@
         public readonly string Text;
         public readonly Lexer.CharType Type;
 
-        public Lexeme(string _text, Lexer.CharType _type)
+        public Lexeme(string text, Lexer.CharType type)
         {
-            Text = _text;
-            Type = _type;
+            Text = text;
+            Type = type;
         }
     }
 }

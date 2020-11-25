@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 
 
@@ -20,7 +18,7 @@ namespace TSL
             string lines = File.ReadAllText(TEXTPATH);
             
             Lexeme[] lexemes = new Lexer(lines).GetLexemes();
-            IToken[]  tokens  = new Evaluator(lexemes).GetTokens();
+            IToken[] tokens  = new Evaluator(lexemes).GetTokens();
 
             File.WriteAllLines(LEXEMEPATH, PrintList(lexemes));
         }

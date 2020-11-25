@@ -1,0 +1,91 @@
+Core:
+Move (distance)
+Turn (angle)
+SetColor(string or hex)
+Draw (bool)
+
+Extentions: Movements
+Forward
+Backward
+Right
+Left
+SetPos | SetPosition
+pos | position
+SetAngle
+angle
+
+Extentions: Draw
+DrawSize
+color
+
+Extentions: Turtle
+SetVisibility
+visible
+SetSprite
+SetSpriteSize
+
+Syntax:
+function name ()
+int
+double
+while ()
+for ()
+if ()
+
+Operators:
++
+-
+*
+/
+^
+!
+||
+&&
+[]
+
+Math:
+sin,cos,power,log,floor,ceil
+Math.? --> Math.?
+
+
+
+
+
+
+
+
+var dis = 50
+var turn = dis
+
+Draw(true)
+moveLeft(500 + dis)
+
+function moveLeft (distance)
+{
+	Turn(-90)
+	Move(turn)
+} 
+
+
+
+
+
+
+
+
+Token(variable declaration, Token(string, dis))
+Token(assignment, Token(variable, dis), Token(int, 50))
+
+Token(variable declaration, Token(variable, turn))
+Token(assignment, Token(variable, turn), Token(variable, dis)
+
+
+Token(call, Token(string, Draw), Token(bool, true))
+Token(call, moveLeft, Token(int, 500) )
+
+
+
+
+
+
+
