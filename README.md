@@ -1,5 +1,5 @@
-# STL
-Tokenizer and runtime for the Test Scripting Language.
+# Test Scripting Language
+Parser, interpreter, and compiler for a test scripting language with the goal of being a precursor to a more general purpose language system.
 
 # Sample Program
 ```
