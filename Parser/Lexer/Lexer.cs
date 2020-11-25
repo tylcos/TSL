@@ -1,109 +1,108 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-
-
 
 namespace TSL
 {
+    public record Lexeme(string Text, CharType Type);
+
+
     public class Lexer
     {
-        public const string Operators = "=+-*/&|!^%<>";
-        public const string Separators = ", ";
-        public const string Accessors = "{}()[]";
+        public List<Lexeme> Lexemes { get; private set; }
 
-        static readonly string NEWLINE = '\u0017'.ToString();
-
-        public char[] Chars;
-        public int pos;
-
-        public List<Lexeme> Lexemes { get; } = new List<Lexeme>();
+        private readonly char[] program;
+        private int pos;
 
 
-        
-        public Lexer(string lines)
+        public const string Operators  = "=+-*/&|!^%<>";
+        public const string Separators = ",";
+        public const string Accessors  = ".{}()[]";
+        public const string Whitespace = " \r\n";
+
+
+
+        public Lexer(string programString)
         {
-            Chars = Regex.Replace(Regex.Replace(Regex.Replace(Regex.Replace(lines
-                , @"\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*\/+|\t|\/\/.*", "") // Removes comments, multiline comments, and tabs
-                , @"\n|\r", NEWLINE)                                            // Replaces new lines with unicode linefeed
-                , @"\u0017+", NEWLINE)                                          // Removes excess newlines
-                , @"\s+", " ")                                                  // Removes excess whitespace
-                .Trim().ToCharArray();
+            program = programString.ToCharArray();
+            pos = 0;
         }
 
 
-
-        public Lexeme[] GetLexemes()
+        /// <summary>
+        /// Returns all parsable lexemes from the program
+        /// </summary>
+        /// <returns>List of parsed lexemes</returns>
+        public List<Lexeme> GetLexemes()
         {
+            Lexemes = new List<Lexeme>();
+
+
             while (CharsRemaining())
             {
-                Lexeme newLexeme = GetNextLexeme();
+                Lexeme nextLexeme = GetNextLexeme();
 
-                if (newLexeme != null)
-                    Lexemes.Add(newLexeme);
+                if (nextLexeme != null)
+                    Lexemes.Add(nextLexeme);
             }
 
-            return Lexemes.ToArray();
+
+            return Lexemes;
         }
 
+        /// <summary>
+        /// Returns the next parsable lexeme if it's available
+        /// </summary>
+        /// <returns>Next lexeme or null if there are no more characters</returns>
         private Lexeme GetNextLexeme()
         {
-            StringBuilder text = new StringBuilder(32);
-            CharType type;
+            var text = new StringBuilder(16);
             bool inQuotes = false;
 
-            do
+            CharType currentType = GetTypeOfChar(program[pos]);
+            CharType nextType = currentType;
+            while (CharsRemaining())
             {
-                char c = GetValue(true);
-                text.Append(c);
+                char c = program[pos++];
+                currentType = nextType; // Prevents classifying character twice
+                if (CharsRemaining())
+                    nextType = GetTypeOfChar(program[pos]);
 
-                type = GetTypeOfChar(c);
 
+                if (currentType == CharType.Whitespace)
+                    continue;
                 if (c == '"')
                     inQuotes = !inQuotes;
-            }
-            while (CharsRemaining() && (inQuotes || (type == GetType() && type != CharType.Accessor)));
-
-            return type == CharType.Separator ? null : new Lexeme(text.ToString(), type);
 
 
+                text.Append(c);
 
-            char GetValue(bool removeChar = false)
-            {
-                char c = Chars[pos];
+                // Continue if currently parsing a string, the next char is of the same type as the current, and stop if an accessor was reached 
+                if (inQuotes || (currentType == nextType && currentType != CharType.Accessor))
+                    continue;
 
-                if (removeChar)
-                    pos++;
-
-                return c;
+                break;
             }
 
-            CharType GetType(bool removeChar = false)
-            {
-                return GetTypeOfChar(GetValue(removeChar));
-            }
+
+            return new Lexeme(text.ToString(), currentType);
         }
 
-        public enum CharType
-        {
-            Accessor,
-            Literal,
-            NewLine,
-            Operator,
-            Separator
-        }
+        private bool CharsRemaining() => pos < program.Length;
 
+
+
+        // Could convert to an ASCII table for performance
         public static CharType GetTypeOfChar(char c)
         {
             if (Accessors.Contains(c))
                 return CharType.Accessor;
 
-            if (char.IsLetterOrDigit(c) || ".\"".Contains(c))
+            if (char.IsLetterOrDigit(c) || "\"".Contains(c))
                 return CharType.Literal;
 
-            if (c == '\u0017')
-                return CharType.NewLine;
+            if (Whitespace.Contains(c))
+                return CharType.Whitespace;
 
             if (Operators.Contains(c))
                 return CharType.Operator;
@@ -113,12 +112,15 @@ namespace TSL
 
             throw new InvalidCharException();
         }
+    }
 
 
-
-        bool CharsRemaining()
-        {
-            return pos < Chars.Length - 1;
-        }
+    public enum CharType
+    {
+        Accessor,
+        Literal,
+        Whitespace,
+        Operator,
+        Separator
     }
 }
