@@ -9,7 +9,7 @@ namespace TSL
 {
     class Evaluator
     {
-        public Lexeme[] Lexemes;
+        public List<Lexeme> Lexemes;
         public List<IToken> Tokens { get; } = new List<IToken>();
         public int pos;
 
@@ -24,7 +24,7 @@ namespace TSL
 
 
 
-        public Evaluator(Lexeme[] lexemes)
+        public Evaluator(List<Lexeme> lexemes)
         {
             Lexemes = lexemes;
         }
@@ -33,7 +33,7 @@ namespace TSL
 
         public IToken[] GetTokens()
         {
-            while (pos < Lexemes.Length)
+            while (pos < Lexemes.Count)
                 GetToken();
 
             return Tokens.ToArray();
@@ -60,10 +60,10 @@ namespace TSL
 
                     if (GetValue() == "=")
                     {
-                        SyntaxAssert(GetType(1) != Lexer.CharType.NewLine, "No expression after assignment");
+                        SyntaxAssert(GetType(1) != Lexer.CharType.Whitespace, "No expression after assignment");
 
                         int expressionLength = 1; // Includes assignment operator
-                        while (GetType(expressionLength) != Lexer.CharType.NewLine)
+                        while (GetType(expressionLength) != Lexer.CharType.Whitespace)
                             expressionLength++;
 
                         Tokens.Add(new Assignment(variableName, new Expression(Lexemes, expressionLength))); // Wrong
@@ -160,7 +160,7 @@ namespace TSL
                 {
                     case 'a': convertedLexemeTypes[i] = Lexer.CharType.Accessor;  break;
                     case 'l': convertedLexemeTypes[i] = Lexer.CharType.Literal;   break;
-                    case 'n': convertedLexemeTypes[i] = Lexer.CharType.NewLine;   break;
+                    case 'n': convertedLexemeTypes[i] = Lexer.CharType.Whitespace;   break;
                     case 'o': convertedLexemeTypes[i] = Lexer.CharType.Operator;  break;
                     case 's': convertedLexemeTypes[i] = Lexer.CharType.Separator; break;
                 }
