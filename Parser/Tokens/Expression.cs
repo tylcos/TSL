@@ -12,7 +12,7 @@ namespace TSL
 
 
 
-        public Expression(Lexeme[] lexemes, int pos)
+        public Expression(List<Lexeme> lexemes, int pos)
         {
             inputSymbols = ParseLexemes(lexemes);
         }
@@ -26,17 +26,17 @@ namespace TSL
 
 
 
-        public List<Symbol> ParseLexemes (Lexeme[] lexemes)
+        public List<Symbol> ParseLexemes (List<Lexeme> lexemes)
         {
             List<Symbol> returnSymbols = new List<Symbol>();
 
-            for (int i = 0; i < lexemes.Length; i++)
+            for (int i = 0; i < lexemes.Count; i++)
             {
-                if (lexemes[i].Type == Lexer.CharType.Operator)
+                if (lexemes[i].Type == CharType.Operator)
                     returnSymbols.Add(new Symbol(lexemes[i].Text, Symbol.SymbolType.Operator));
                 else if (double.TryParse(lexemes[i].Text, out double result))
                     returnSymbols.Add(new Constant(result));
-                else if (lexemes[i].Type == Lexer.CharType.Accessor && "()".Contains(lexemes[i].Text))
+                else if (lexemes[i].Type == CharType.Accessor && "()".Contains(lexemes[i].Text))
                     returnSymbols.Add(new Symbol(lexemes[i].Text, Symbol.SymbolType.Punctuation));
                 else
                 {

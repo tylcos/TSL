@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -13,13 +16,6 @@ namespace TSL
 
         private readonly char[] program;
         private int pos;
-
-
-        public const string Operators  = "=+-*/&|!^%<>";
-        public const string Separators = ",";
-        public const string Accessors  = ".{}()[]";
-        public const string Whitespace = " \r\n";
-
 
 
         public Lexer(string programString)
@@ -57,8 +53,10 @@ namespace TSL
         private Lexeme GetNextLexeme()
         {
             var text = new StringBuilder(16);
-            bool inQuotes = false;
+            int flags = 0; // Bit 0: in quotes, Bit 1: in single line comment, Bit 2: in multi line comment
 
+
+            // Each iteration will have access to the current character, current type, next type
             CharType currentType = GetTypeOfChar(program[pos]);
             CharType nextType = currentType;
             while (CharsRemaining())
@@ -69,21 +67,56 @@ namespace TSL
                     nextType = GetTypeOfChar(program[pos]);
 
 
-                if (currentType == CharType.Whitespace)
+                // Condition checking for dealing with strings and comments, order of if statments matters severely
+                // Might want to convert to a DFA as any normal program character goes through a bunch of if statments unnecessarily 
+                if ((flags & 0b001) != 0 && c != '"') // Within string
+                {
+                    text.Append(c);
                     continue;
-                if (c == '"')
-                    inQuotes = !inQuotes;
+                }
+                else if (currentType == CharType.Comment) // Start of single comment or start or end of multi line comment
+                { 
+                    flags = nextType == CharType.Comment ? flags ^ 0b100 : flags | 0b010;
+                    continue;
+                }
+                else if ((flags & 0b010) != 0 && currentType == CharType.Newline) // In single line comment and new line reached
+                {
+                    flags ^= 0b010;
+                    continue;
+                }
+                else if ((flags & 0b110) != 0) // Within comment
+                {
+                    continue;
+                }
+                else if (c == '"') // Start or end of string
+                {
+                    text.Append(c);
+                    flags ^= 0b001;
+                }
+                else if (currentType == CharType.Whitespace) // Whitespace
+                {
+                    continue;
+                }
+                else // Normal program
+                {
+                    text.Append(c);
+                }
 
 
-                text.Append(c);
-
-                // Continue if currently parsing a string, the next char is of the same type as the current, and stop if an accessor was reached 
-                if (inQuotes || (currentType == nextType && currentType != CharType.Accessor))
+                // Only continue if currently parsing a string or comment, the next char is of the same type as the current, and stop if an accessor was reached 
+                if (flags != 0 || (currentType == nextType && currentType != CharType.Accessor))
                     continue;
 
                 break;
             }
 
+
+            if ((flags & 0b001) != 0) // Unfinished string
+                throw new NotImplementedException();
+            if ((flags & 0b100) != 0) // Unfinished multi line comment
+                throw new NotImplementedException();
+            if (currentType == CharType.Whitespace)
+                return null;
 
             return new Lexeme(text.ToString(), currentType);
         }
@@ -92,35 +125,34 @@ namespace TSL
 
 
 
-        // Could convert to an ASCII table for performance
-        public static CharType GetTypeOfChar(char c)
-        {
-            if (Accessors.Contains(c))
-                return CharType.Accessor;
+        // Maps each character to a CharType
+        // Accessor   : .(){}[]
+        // Literal    : abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_
+        // Whitespace :  \r
+        // Operator   : =+-*/\&|!^%<>,
+        // Comment    : #
+        // Newline    : \n
 
-            if (char.IsLetterOrDigit(c) || "\"".Contains(c))
-                return CharType.Literal;
+        // Pretty print
+        // for (int i = 0; i < 128; i++) Console.WriteLine($"{i, 3}   {(char)i}   {(CharType)TypeTable[i]}");
+        private static readonly byte[] TypeTable = new byte[] { 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                4, 8, 2, 16, 0, 8, 8, 2, 1, 1,  8, 8, 8, 8, 1, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 8, 8, 8, 8, 
+                                                                0, 2, 2,  2, 2, 2, 2, 2, 2, 2,  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 8, 1, 8, 2, 
+                                                                0, 2, 2,  2, 2, 2, 2, 2, 2, 2,  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 8, 1, 8, 0 
+        };
 
-            if (Whitespace.Contains(c))
-                return CharType.Whitespace;
-
-            if (Operators.Contains(c))
-                return CharType.Operator;
-
-            if (Separators.Contains(c))
-                return CharType.Separator;
-
-            throw new InvalidCharException();
-        }
+        public static CharType GetTypeOfChar(char c) => c > 127 ? CharType.Literal : (CharType)TypeTable[c];
     }
 
 
-    public enum CharType
+    public enum CharType : byte
     {
-        Accessor,
-        Literal,
-        Whitespace,
-        Operator,
-        Separator
+        Invalid    = 0,
+        Accessor   = 1,
+        Literal    = 2,
+        Whitespace = 4,
+        Operator   = 8,
+        Comment    = 16,
+        Newline    = 32
     }
 }

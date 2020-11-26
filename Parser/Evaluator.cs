@@ -60,10 +60,10 @@ namespace TSL
 
                     if (GetValue() == "=")
                     {
-                        SyntaxAssert(GetType(1) != Lexer.CharType.Whitespace, "No expression after assignment");
+                        SyntaxAssert(GetType(1) != CharType.Whitespace, "No expression after assignment");
 
                         int expressionLength = 1; // Includes assignment operator
-                        while (GetType(expressionLength) != Lexer.CharType.Whitespace)
+                        while (GetType(expressionLength) != CharType.Whitespace)
                             expressionLength++;
 
                         Tokens.Add(new Assignment(variableName, new Expression(Lexemes, expressionLength))); // Wrong
@@ -120,7 +120,7 @@ namespace TSL
             return Lexemes[pos + offset].Text;
         }
 
-        private Lexer.CharType GetType(int offset = 0)
+        private CharType GetType(int offset = 0)
         {
             return Lexemes[pos + offset].Type;
         }
@@ -152,24 +152,23 @@ namespace TSL
 
         public bool LexemesMatch(int offset = 0, params char[] lexemeTypes)
         {
-            Lexer.CharType[] convertedLexemeTypes = new Lexer.CharType[lexemeTypes.Length];
+            CharType[] convertedLexemeTypes = new CharType[lexemeTypes.Length];
 
             for (int i = 0; i < lexemeTypes.Length; i++)
             {
                 switch (lexemeTypes[i])
                 {
-                    case 'a': convertedLexemeTypes[i] = Lexer.CharType.Accessor;  break;
-                    case 'l': convertedLexemeTypes[i] = Lexer.CharType.Literal;   break;
-                    case 'n': convertedLexemeTypes[i] = Lexer.CharType.Whitespace;   break;
-                    case 'o': convertedLexemeTypes[i] = Lexer.CharType.Operator;  break;
-                    case 's': convertedLexemeTypes[i] = Lexer.CharType.Separator; break;
+                    case 'a': convertedLexemeTypes[i] = CharType.Accessor;  break;
+                    case 'l': convertedLexemeTypes[i] = CharType.Literal;   break;
+                    case 'n': convertedLexemeTypes[i] = CharType.Whitespace;   break;
+                    case 'o': convertedLexemeTypes[i] = CharType.Operator;  break;
                 }
             }
 
             return LexemesMatch(offset, convertedLexemeTypes);
         }
 
-        public bool LexemesMatch(int offset, params Lexer.CharType[] lexemeTypes)
+        public bool LexemesMatch(int offset, params CharType[] lexemeTypes)
         {
             for (int i = 0; i < lexemeTypes.Length; i++)
                 if (Lexemes[pos + offset + i].Type != lexemeTypes[i])
