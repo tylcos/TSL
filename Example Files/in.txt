@@ -1,15 +1,15 @@
-﻿// Turtle Scripting Language example program
+﻿# Test Scripting Language example program
 
 var dis = 50
 var turn = dis + 30
 
-/*
-	Main code
-*/
+## Multiline comment
+Main code
+##
 Draw(true)
 moveLeft(50.5 + dis)
 
-def moveLeft (distance = 0, msg = "test") // For moving left
+def moveLeft (distance = 0, msg = "test") # For moving left
 {
 	distance += 5
 	
